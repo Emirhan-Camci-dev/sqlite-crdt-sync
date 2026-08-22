@@ -1,0 +1,22 @@
+[package]
+name = "edgesync-core"
+version = "0.1.0"
+edition = "2021"
+authors = ["Emirhan CAMCI <byemir@live.com>"]
+description = "Offline-first P2P syncing and encrypted SQLite extension - Core Module"
+license = "AGPL-3.0"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+rusqlite = { version = "0.31", features = ["bundled", "vfs"] }
+sqlite-loadable = "0.0.5"
+libp2p = { version = "0.52.0", features = ["tokio", "mdns", "noise", "yamux", "tcp", "macros"] }
+tokio = { version = "1.37", features = ["full"] }
+chacha20poly1305 = "0.10.1"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+rand = "0.8"
+futures = "0.3"
+hex = "0.4"
