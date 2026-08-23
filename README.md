@@ -1,3 +1,7 @@
+👉 **[Pro full version](https://github.com/Emirhan-Camci-dev/sqlite-crdt-sync-pro)**
+
+
+
 ```markdown
 # sqlite-crdt-sync
 
