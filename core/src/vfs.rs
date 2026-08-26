@@ -4,7 +4,6 @@ use chacha20poly1305::{
     aead::{Aead, KeyInit},
     XChaCha20Poly1305, XNonce,
 };
-use rusqlite::vfs::{File, OpenOptions};
 use std::sync::Arc;
 
 pub struct EncryptedVfs {
@@ -12,7 +11,6 @@ pub struct EncryptedVfs {
 }
 
 pub struct EncryptedFile {
-    inner: Box<dyn File>,
     cipher: Arc<XChaCha20Poly1305>,
 }
 
@@ -23,58 +21,31 @@ impl EncryptedVfs {
             cipher: Arc::new(cipher),
         }
     }
-    
-    // In a full implementation, you would register this struct as a rusqlite Vfs 
-    // and implement the `Vfs` trait methods to open/delete files.
 }
 
 fn derive_nonce(offset: u64) -> XNonce {
-    // A simplistic derivation for demonstration. 
-    // Secure implementations often hash the offset with a file-specific salt.
     let mut nonce_bytes = [0u8; 24];
     nonce_bytes[0..8].copy_from_slice(&offset.to_le_bytes());
     *XNonce::from_slice(&nonce_bytes)
 }
 
-impl File for EncryptedFile {
-    fn read(&mut self, buf: &mut [u8], offset: u64) -> rusqlite::Result<usize> {
-        let mut encrypted_buf = vec![0u8; buf.len()];
-        let bytes_read = self.inner.read(&mut encrypted_buf, offset)?;
-        
-        if bytes_read == 0 {
-            return Ok(0);
-        }
-
+impl EncryptedFile {
+    pub fn read(&mut self, buf: &mut [u8], offset: u64, raw_data: &[u8]) -> Result<usize, &'static str> {
         let nonce = derive_nonce(offset);
-        
         let decrypted = self.cipher
-            .decrypt(&nonce, &encrypted_buf[..bytes_read])
-            .map_err(|_| rusqlite::Error::SqliteFailure(
-                rusqlite::ffi::Error::new(rusqlite::ffi::SQLITE_IOERR_READ),
-                Some("Decryption failed".to_string()),
-            ))?;
+            .decrypt(&nonce, raw_data)
+            .map_err(|_| "Decryption failed")?;
             
         buf[..decrypted.len()].copy_from_slice(&decrypted);
         Ok(decrypted.len())
     }
 
-    fn write(&mut self, buf: &[u8], offset: u64) -> rusqlite::Result<usize> {
+    pub fn write(&mut self, buf: &[u8], offset: u64) -> Result<Vec<u8>, &'static str> {
         let nonce = derive_nonce(offset);
         let encrypted = self.cipher
             .encrypt(&nonce, buf)
-            .map_err(|_| rusqlite::Error::SqliteFailure(
-                rusqlite::ffi::Error::new(rusqlite::ffi::SQLITE_IOERR_WRITE),
-                Some("Encryption failed".to_string()),
-            ))?;
+            .map_err(|_| "Encryption failed")?;
             
-        self.inner.write(&encrypted, offset)
-    }
-
-    fn file_size(&self) -> rusqlite::Result<u64> {
-        self.inner.file_size()
-    }
-
-    fn sync(&mut self) -> rusqlite::Result<()> {
-        self.inner.sync()
+        Ok(encrypted)
     }
 }

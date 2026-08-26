@@ -10,7 +10,7 @@ license = "AGPL-3.0"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-rusqlite = { version = "0.31", features = ["bundled", "vfs"] }
+rusqlite = { version = "0.31", features = ["bundled"] }
 sqlite-loadable = "0.0.5"
 libp2p = { version = "0.52.0", features = ["tokio", "mdns", "noise", "yamux", "tcp", "macros"] }
 tokio = { version = "1.37", features = ["full"] }

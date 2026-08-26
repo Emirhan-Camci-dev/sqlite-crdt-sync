@@ -3,7 +3,7 @@
 use libp2p::{
     mdns, noise, tcp, yamux,
     swarm::{NetworkBehaviour, SwarmEvent},
-    identity, PeerId, SwarmBuilder
+    identity, PeerId, SwarmBuilder, futures::StreamExt
 };
 use std::time::Duration;
 use tokio::sync::mpsc;

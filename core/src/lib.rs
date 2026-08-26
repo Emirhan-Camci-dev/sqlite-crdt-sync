@@ -2,9 +2,10 @@
 
 pub mod crdt;
 pub mod p2p;
+pub mod plugin;
 pub mod vfs;
 
-use sqlite_loadable::{api, Result};
+use sqlite_loadable::Result;
 use sqlite_loadable::prelude::*;
 
 /// Entry point for the SQLite loadable extension
